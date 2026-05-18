@@ -1,0 +1,88 @@
+name: Mirror appsignal-cli release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version to mirror, with or without the leading v
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_REPO: appsignal/appsignal-cli
+
+jobs:
+  mirror_release:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Normalize version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download macOS release assets from private repository
+        env:
+          GH_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+        run: |
+          mkdir -p dist
+          gh release download "${{ steps.version.outputs.tag }}" \
+            --repo "$SOURCE_REPO" \
+            --dir dist \
+            --pattern "aarch64-apple-darwin.tar.gz" \
+            --pattern "x86_64-apple-darwin.tar.gz"
+
+      - name: Calculate SHA256 values
+        id: shas
+        run: |
+          ARM_SHA="$(sha256sum dist/aarch64-apple-darwin.tar.gz | cut -d' ' -f1)"
+          INTEL_SHA="$(sha256sum dist/x86_64-apple-darwin.tar.gz | cut -d' ' -f1)"
+          echo "arm_sha=$ARM_SHA" >> "$GITHUB_OUTPUT"
+          echo "intel_sha=$INTEL_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            gh release upload "${{ steps.version.outputs.tag }}" \
+              dist/aarch64-apple-darwin.tar.gz \
+              dist/x86_64-apple-darwin.tar.gz \
+              --clobber
+          else
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --title "${{ steps.version.outputs.version }}" \
+              --notes "Mirrored macOS release assets for the Homebrew cask." \
+              dist/aarch64-apple-darwin.tar.gz \
+              dist/x86_64-apple-darwin.tar.gz
+          fi
+
+      - name: Update cask
+        run: |
+          ruby script/write_cask \
+            "${{ steps.version.outputs.version }}" \
+            "${{ steps.shas.outputs.arm_sha }}" \
+            "${{ steps.shas.outputs.intel_sha }}"
+
+      - name: Commit cask update
+        run: |
+          if git diff --quiet -- Casks/appsignal-cli.rb; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/appsignal-cli.rb
+          git commit -m "Update appsignal-cli cask to v${{ steps.version.outputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"
