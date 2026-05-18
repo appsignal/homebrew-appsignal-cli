@@ -1,9 +1,9 @@
 cask "appsignal-cli" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.1.0"
-  sha256 arm: "bcfddac21adfefe0b32c6e7966c344567983c8f580dae5fa9995c1d7a4043da7",
-         intel: "24ae3999bd7d009b7066d441cce7b6266e73e283028e7c16dc185feaf80c076a"
+  version "0.2.0"
+  sha256 arm: "adf513fc7a6cae9c11b9aa65788f2b98a6e80d89314179d22619cecbc4b9d4ae",
+         intel: "1ffeaeeca02e1d4f412609fc39e8b47c18a9be4da88c6581b55bcde1cfe57d4f"
 
   url "https://github.com/appsignal/homebrew-appsignal-cli/releases/download/v#{version}/#{arch}-apple-darwin.tar.gz",
       verified: "github.com/appsignal/homebrew-appsignal-cli/"
