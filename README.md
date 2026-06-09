@@ -28,6 +28,14 @@ Optional variables:
 - `VERSION=1.0.1` installs a specific version.
 - `INSTALL_DIR=$HOME/.local/bin` installs to a custom directory.
 
+## Updating
+
+To update to the latest release, run the same install command again:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/appsignal/homebrew-appsignal-cli/main/install.sh | sh
+```
+
 ## Release flow
 
 1. Publish `vX.Y.Z` in the private `appsignal/appsignal-cli` repository.
