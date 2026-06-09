@@ -5,6 +5,8 @@ set -eu
 REPO="appsignal/homebrew-appsignal-cli"
 BIN_NAME="appsignal-cli"
 DEFAULT_INSTALL_DIR="/usr/local/bin"
+RAW_BASE_URL="${RAW_BASE_URL:-https://raw.githubusercontent.com/$REPO/main}"
+RELEASE_BASE_URL="${RELEASE_BASE_URL:-https://github.com/$REPO/releases/download}"
 
 log() {
   printf '%s\n' "$*"
@@ -17,6 +19,27 @@ fail() {
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Missing required command: $1"
+}
+
+sha256_file() {
+  file_path="$1"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$file_path" | cut -d' ' -f1
+    return
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$file_path" | cut -d' ' -f1
+    return
+  fi
+
+  if command -v openssl >/dev/null 2>&1; then
+    openssl dgst -sha256 "$file_path" | sed 's/^.*= //'
+    return
+  fi
+
+  fail "Missing required command: sha256sum, shasum, or openssl"
 }
 
 detect_platform() {
@@ -108,11 +131,15 @@ need_cmd tar
 need_cmd install
 need_cmd uname
 need_cmd mktemp
+need_cmd sed
+need_cmd cut
 
 target="$(detect_platform)"
 version="$(resolve_version)"
 install_dir="$(resolve_install_dir)"
-archive_url="https://github.com/$REPO/releases/download/v$version/$target.tar.gz"
+archive_name="$target.tar.gz"
+archive_url="$RELEASE_BASE_URL/v$version/$archive_name"
+checksums_url="$RAW_BASE_URL/checksums/v$version.txt"
 tmp_dir="$(mktemp -d)"
 
 cleanup() {
@@ -122,8 +149,15 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 log "Installing $BIN_NAME v$version for $target"
-curl -fsSL "$archive_url" -o "$tmp_dir/$target.tar.gz"
-tar -xzf "$tmp_dir/$target.tar.gz" -C "$tmp_dir"
+curl -fsSL "$checksums_url" -o "$tmp_dir/checksums.txt"
+expected_sha="$(sed -n "s/^\([0-9a-f][0-9a-f]*\)  $archive_name$/\1/p" "$tmp_dir/checksums.txt")"
+[ -n "$expected_sha" ] || fail "Could not find checksum for $archive_name"
+
+curl -fsSL "$archive_url" -o "$tmp_dir/$archive_name"
+actual_sha="$(sha256_file "$tmp_dir/$archive_name")"
+[ "$actual_sha" = "$expected_sha" ] || fail "Checksum verification failed for $archive_name"
+
+tar -xzf "$tmp_dir/$archive_name" -C "$tmp_dir"
 
 [ -f "$tmp_dir/$BIN_NAME" ] || fail "Archive did not contain $BIN_NAME"
 

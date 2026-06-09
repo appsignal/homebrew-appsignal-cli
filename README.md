@@ -17,6 +17,8 @@ Or install the latest release directly with `curl`:
 curl -fsSL https://raw.githubusercontent.com/appsignal/homebrew-appsignal-cli/main/install.sh | sh
 ```
 
+The installer verifies the downloaded archive against the published SHA256 checksum before installing.
+
 Install a specific version:
 
 ```sh
@@ -40,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/appsignal/homebrew-appsignal-cli/ma
 
 1. Publish `vX.Y.Z` in the private `appsignal/appsignal-cli` repository.
 2. Run the `Mirror appsignal-cli release` workflow in this repository with `X.Y.Z`.
-3. The workflow downloads the macOS and Linux GNU tarballs from the private release, publishes them to this public repository's matching release, and updates `Formula/appsignal-cli.rb` with the new version and SHA256 values.
+3. The workflow downloads the macOS and Linux GNU tarballs from the private release, publishes them to this public repository's matching release, writes a versioned checksum manifest, and updates `Formula/appsignal-cli.rb` with the new version and SHA256 values.
 
 The formula installs a prebuilt binary from this public repository's GitHub Releases instead of building from source during `brew install`.
 
