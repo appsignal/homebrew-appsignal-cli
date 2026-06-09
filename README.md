@@ -11,6 +11,23 @@ brew tap appsignal/appsignal-cli
 brew install appsignal-cli
 ```
 
+Or install the latest release directly with `curl`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/appsignal/homebrew-appsignal-cli/main/install.sh | sh
+```
+
+Install a specific version:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/appsignal/homebrew-appsignal-cli/main/install.sh | VERSION=1.0.1 sh
+```
+
+Optional variables:
+
+- `VERSION=1.0.1` installs a specific version.
+- `INSTALL_DIR=$HOME/.local/bin` installs to a custom directory.
+
 ## Release flow
 
 1. Publish `vX.Y.Z` in the private `appsignal/appsignal-cli` repository.
