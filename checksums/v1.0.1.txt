@@ -1,4 +1,0 @@
-bbc51227b5cd4271a96ffeb09d654319037fa347745452d3cafb8c54f20d4998  aarch64-apple-darwin.tar.gz
-267e61ecd42412e004cda814291402580f8540e46ba7acdbbfe18412cdf4ca01  x86_64-apple-darwin.tar.gz
-bb605bfde75c5dbf75d4fd14899d320897f80dc5c3dbbe0c75c84f20fa0a2d5a  aarch64-unknown-linux-gnu.tar.gz
-37e12d30a8c1d5e131e4b06bd5f3901a60328015ad48fa9354cc473a17294d59  x86_64-unknown-linux-gnu.tar.gz

@@ -1,0 +1,84 @@
+name: Update appsignal-cli formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version to use, with or without the leading v
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_REPO: appsignal/appsignal-cli
+
+jobs:
+  update_formula:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Normalize version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download checksum manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ steps.version.outputs.tag }}" \
+            --repo "$SOURCE_REPO" \
+            --pattern SHA256SUMS
+
+      - name: Read SHA256 values
+        id: shas
+        run: |
+          read_sha() {
+            awk -v file="$1" '$2 == file { print $1 }' SHA256SUMS
+          }
+
+          ARM_SHA="$(read_sha aarch64-apple-darwin.tar.gz)"
+          INTEL_SHA="$(read_sha x86_64-apple-darwin.tar.gz)"
+          LINUX_ARM_SHA="$(read_sha aarch64-unknown-linux-gnu.tar.gz)"
+          LINUX_INTEL_SHA="$(read_sha x86_64-unknown-linux-gnu.tar.gz)"
+
+          if [ -z "$ARM_SHA" ] || [ -z "$INTEL_SHA" ] || [ -z "$LINUX_ARM_SHA" ] || [ -z "$LINUX_INTEL_SHA" ]; then
+            echo "Missing one or more required checksums in SHA256SUMS" >&2
+            exit 1
+          fi
+
+          echo "arm_sha=$ARM_SHA" >> "$GITHUB_OUTPUT"
+          echo "intel_sha=$INTEL_SHA" >> "$GITHUB_OUTPUT"
+          echo "linux_arm_sha=$LINUX_ARM_SHA" >> "$GITHUB_OUTPUT"
+          echo "linux_intel_sha=$LINUX_INTEL_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        run: |
+          ruby script/write_formula \
+            "${{ steps.version.outputs.version }}" \
+            "${{ steps.shas.outputs.arm_sha }}" \
+            "${{ steps.shas.outputs.intel_sha }}" \
+            "${{ steps.shas.outputs.linux_arm_sha }}" \
+            "${{ steps.shas.outputs.linux_intel_sha }}"
+
+      - name: Commit formula update
+        run: |
+          if git diff --quiet -- Formula/appsignal-cli.rb; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/appsignal-cli.rb
+          git commit -m "Update appsignal-cli formula to v${{ steps.version.outputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"

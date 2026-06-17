@@ -1,29 +1,29 @@
 class AppsignalCli < Formula
   desc "CLI for interacting with AppSignal"
-  homepage "https://github.com/appsignal/homebrew-appsignal-cli"
-  version "1.0.1"
+  homepage "https://github.com/appsignal/appsignal-cli"
+  version "2.0.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/appsignal/homebrew-appsignal-cli/releases/download/v#{version}/aarch64-apple-darwin.tar.gz"
-      sha256 "bbc51227b5cd4271a96ffeb09d654319037fa347745452d3cafb8c54f20d4998"
+      url "https://github.com/appsignal/appsignal-cli/releases/download/v#{version}/aarch64-apple-darwin.tar.gz"
+      sha256 "180c3b9dc49322f06381bcf3bb713c8393026b3996cb278ecb7f239c315b4928"
     end
 
     on_intel do
-      url "https://github.com/appsignal/homebrew-appsignal-cli/releases/download/v#{version}/x86_64-apple-darwin.tar.gz"
-      sha256 "267e61ecd42412e004cda814291402580f8540e46ba7acdbbfe18412cdf4ca01"
+      url "https://github.com/appsignal/appsignal-cli/releases/download/v#{version}/x86_64-apple-darwin.tar.gz"
+      sha256 "2a9541e152a9d942341f0f50c278c31a78acebdcb0dae8610446ef8cd852b1cb"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/appsignal/homebrew-appsignal-cli/releases/download/v#{version}/aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "bb605bfde75c5dbf75d4fd14899d320897f80dc5c3dbbe0c75c84f20fa0a2d5a"
+      url "https://github.com/appsignal/appsignal-cli/releases/download/v#{version}/aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "dee14886e5e629c9c32ef59a87cfae0eb7a2f110e50fb66e9948520f06c100ce"
     end
 
     on_intel do
-      url "https://github.com/appsignal/homebrew-appsignal-cli/releases/download/v#{version}/x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "37e12d30a8c1d5e131e4b06bd5f3901a60328015ad48fa9354cc473a17294d59"
+      url "https://github.com/appsignal/appsignal-cli/releases/download/v#{version}/x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "483182b8737336813e505afc07b9c30da0f02bfa2d926d2f73bf0d9f25ed448d"
     end
   end
 
